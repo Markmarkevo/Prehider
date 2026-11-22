@@ -1,5 +1,7 @@
 # Prehider
 
+**English** · [简体中文](README.zh-CN.md)
+
 ![Version 2.5.0](https://img.shields.io/badge/Version-2.5.0-6554e8)
 ![Chrome and Edge](https://img.shields.io/badge/Browser-Chrome%20%26%20Edge-2563eb)
 ![Manifest V3](https://img.shields.io/badge/Extension-Manifest%20V3-16836a)
