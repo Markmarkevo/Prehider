@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prehider</title>
+  <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body data-view="loading">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="../icons/icon48.png" width="36" height="36" alt="">
+      <div>
+        <h1>Prehider<span class="ver" id="ver"></span></h1>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="btn-lang" class="chip" type="button" title="中文 / English">中 / EN</button>
+      <label class="master-control">
+        <span class="master-label" data-i18n="master_switch"></span>
+        <span class="switch">
+          <input type="checkbox" data-key="enabled" role="switch">
+          <span class="slider"></span>
+        </span>
+      </label>
+    </div>
+  </header>
+
+  <nav id="settings-nav" class="settings-nav" data-i18n-aria="settings_navigation" hidden>
+    <a href="#overview"><span class="nav-symbol" aria-hidden="true">⠿</span><span data-i18n="nav_overview"></span></a>
+    <a href="#device"><span class="nav-symbol" aria-hidden="true">▣</span><span data-i18n="nav_device"></span></a>
+    <a href="#region"><span class="nav-symbol" aria-hidden="true">◎</span><span data-i18n="nav_region"></span></a>
+    <a href="#sites"><span class="nav-symbol" aria-hidden="true">▤</span><span data-i18n="nav_sites"></span></a>
+    <a href="#privacy"><span class="nav-symbol" aria-hidden="true">◇</span><span data-i18n="nav_privacy"></span></a>
+    <a href="#appearance"><span class="nav-symbol" aria-hidden="true">◐</span><span data-i18n="nav_appearance"></span></a>
+  </nav>
+
+  <main id="popup-home" class="popup-home" hidden>
+    <section class="popup-summary" aria-labelledby="popup-state">
+      <h2 id="popup-state" class="protection-state" data-protection-state></h2>
+      <dl class="popup-values">
+        <div><dt data-i18n="label_active_preset"></dt><dd data-summary="preset"></dd></div>
+        <div><dt data-i18n="label_profile"></dt><dd data-summary="profile"></dd></div>
+        <div><dt data-i18n="label_locale"></dt><dd data-summary="language"></dd></div>
+        <div><dt data-i18n="label_zone"></dt><dd data-summary="timezone"></dd></div>
+      </dl>
+    </section>
+
+    <form id="quick-preset-form" class="quick-preset row" hidden>
+      <label class="field grow">
+        <span data-i18n="preset_switch"></span>
+        <select id="quick-preset"></select>
+      </label>
+      <button class="btn" id="quick-preset-apply" type="submit" data-i18n="preset_apply"></button>
+    </form>
+
+    <section class="site" id="site-bar" hidden>
+      <div class="site-host">
+        <small data-i18n="current_site"></small>
+        <strong id="site-host"></strong>
+        <span id="site-state"></span>
+      </div>
+      <div class="site-actions">
+        <button id="btn-exclude" class="btn" type="button"></button>
+        <button id="btn-reload" class="btn" type="button" data-i18n="reload_tab"></button>
+      </div>
+    </section>
+    <button id="btn-tab" class="btn primary open-settings" type="button" data-open-settings="overview">
+      <span data-i18n="open_tab"></span><span aria-hidden="true">↗</span>
+    </button>
+    <div class="popup-shortcuts">
+      <button class="link" type="button" data-open-settings="sites" data-i18n="nav_sites"></button>
+      <button class="link" type="button" data-open-settings="appearance" data-i18n="nav_appearance"></button>
+    </div>
+  </main>
+
+  <main id="settings-main" class="settings-main" hidden>
+    <section class="settings-page" id="overview" aria-labelledby="overview-title" hidden>
+      <header class="page-heading">
+        <h2 id="overview-title" tabindex="-1" data-i18n="nav_overview"></h2>
+        <p data-i18n="overview_desc"></p>
+      </header>
+      <div class="overview-summary">
+        <div class="overview-title">
+          <span class="protection-state" data-protection-state></span>
+          <h3 data-summary="preset"></h3>
+          <p class="hint overview-profile"><span data-i18n="label_profile"></span><strong data-summary="profile"></strong></p>
+          <a class="btn primary" href="#device" data-i18n="edit_device"></a>
+        </div>
+        <div class="overview-mark" aria-hidden="true"><img src="../icons/icon128.png" width="84" height="84" alt=""></div>
+      </div>
+      <div class="overview-links">
+        <a class="overview-link" href="#region"><span data-i18n="label_locale"></span><strong data-summary="language"></strong><span aria-hidden="true">↗</span></a>
+        <a class="overview-link" href="#region"><span data-i18n="label_zone"></span><strong data-summary="timezone"></strong><span aria-hidden="true">↗</span></a>
+        <a class="overview-link" href="#sites"><span data-i18n="nav_sites"></span><strong data-summary="sites"></strong><span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="settings-page" id="sites" aria-labelledby="sites-title" hidden>
+      <header class="page-heading"><h2 id="sites-title" tabindex="-1" data-i18n="nav_sites"></h2><p data-i18n="sites_desc"></p></header>
+      <section class="card" id="site-exclusions" aria-labelledby="site-exclusions-title" hidden>
+        <header>
+          <h2 id="site-exclusions-title" data-i18n="site_exclusions_title"></h2>
+        </header>
+        <div class="body">
+          <p class="hint" id="site-exclusions-hint" data-i18n="site_exclusions_hint"></p>
+          <form class="row" id="site-exclusion-form" novalidate>
+            <label class="field grow">
+              <span data-i18n="site_exclusion_label"></span>
+              <input id="site-exclusion-input" type="text" placeholder="mail.google.com" autocomplete="off" spellcheck="false" aria-describedby="site-exclusions-hint site-exclusion-error">
+            </label>
+            <button class="btn primary" type="submit" data-i18n="site_exclusion_add"></button>
+          </form>
+          <p class="error" id="site-exclusion-error" role="alert" hidden></p>
+          <p class="hint" id="site-exclusions-empty" data-i18n="site_exclusions_empty" hidden></p>
+          <ul class="site-exclusion-list" id="site-exclusion-list"></ul>
+        </div>
+      </section>
+    </section>
+
+    <section class="settings-page" id="device" aria-labelledby="device-title" hidden>
+      <header class="page-heading"><h2 id="device-title" tabindex="-1" data-i18n="nav_device"></h2><p data-i18n="device_desc"></p></header>
+      <div class="settings-grid">
+        <section class="card wide" aria-labelledby="presets-title">
+          <header><h2 id="presets-title" data-i18n="presets_title"></h2></header>
+          <div class="body always">
+            <p class="hint" data-i18n="presets_hint"></p>
+            <form id="preset-form" class="row" novalidate>
+              <label class="field grow">
+                <span data-i18n="preset_name"></span>
+                <input id="preset-name" type="text" maxlength="60" autocomplete="off" aria-describedby="preset-status" data-i18n-ph="preset_placeholder">
+              </label>
+              <button type="submit" class="btn primary" data-i18n="preset_save"></button>
+            </form>
+            <p id="preset-status" class="preset-status" role="status"></p>
+            <ul id="preset-list" class="preset-list"></ul>
+          </div>
+        </section>
+
+        <section class="card profile wide">
+          <header>
+            <h2 data-i18n="device_title"></h2>
+          </header>
+          <div class="body always">
+            <p class="hint" data-i18n="profile_hint"></p>
+            <p class="warn" id="exposed-warn" hidden></p>
+            <div class="devices" id="device-tiles" role="radiogroup">
+              <button class="device" type="button" role="radio" data-device="win"><span class="dev-icon">&#128421;&#65039;</span><strong>Windows</strong><small data-i18n="dev_desktop"></small></button>
+              <button class="device" type="button" role="radio" data-device="mac"><span class="dev-icon">&#128187;</span><strong>macOS</strong><small data-i18n="dev_desktop"></small></button>
+              <button class="device" type="button" role="radio" data-device="linux"><span class="dev-icon">&#128039;</span><strong>Linux</strong><small data-i18n="dev_desktop"></small></button>
+              <button class="device" type="button" role="radio" data-device="android"><span class="dev-icon">&#128241;</span><strong>Android</strong><small data-i18n="dev_phone"></small></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-feature="ua">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="ua_title" data-key="ua.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="ua_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="ua_hint"></p>
+            <label class="check">
+              <input type="checkbox" data-key="platformSync">
+              <span><strong data-i18n="platform_sync"></strong><small data-i18n="platform_sync_hint"></small></span>
+            </label>
+            <label class="field">
+              <span data-i18n="ua_device"></span>
+              <select id="ua-device">
+                <option value="win">Windows (Desktop)</option>
+                <option value="mac">macOS (Desktop)</option>
+                <option value="linux">Linux (Desktop)</option>
+                <option value="android">Android (Phone)</option>
+              </select>
+            </label>
+            <label class="field"><span>User-Agent</span><textarea rows="3" data-key="ua.userAgent" spellcheck="false"></textarea></label>
+            <label class="field"><span>navigator.platform</span><input type="text" data-key="ua.platform" spellcheck="false"></label>
+          </div>
+        </section>
+
+        <section class="card" data-feature="webgl">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="webgl_title" data-key="webgl.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="webgl_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="webgl_hint"></p>
+            <div class="field">
+              <span data-i18n="gpu_label"></span>
+              <div class="combo" id="gpu-combo">
+                <input type="text" id="gpu-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="gpu-list" autocomplete="off" spellcheck="false" data-i18n-ph="gpu_placeholder">
+                <button type="button" class="combo-toggle" id="gpu-toggle" tabindex="-1" data-i18n-title="tz_toggle">&#9662;</button>
+                <div class="combo-list" id="gpu-list" role="listbox" hidden></div>
+              </div>
+            </div>
+            <details class="raw">
+              <summary data-i18n="gpu_details"></summary>
+              <label class="field"><span data-i18n="webgl_vendor"></span><input type="text" data-key="webgl.vendor" spellcheck="false"></label>
+              <label class="field"><span data-i18n="webgl_renderer"></span><input type="text" data-key="webgl.renderer" spellcheck="false"></label>
+            </details>
+          </div>
+        </section>
+
+        <section class="card" data-feature="screen">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="screen_title" data-key="screen.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="screen_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="screen_hint"></p>
+            <label class="field">
+              <span data-i18n="screen_preset"></span>
+              <select id="screen-preset">
+                <option value="" data-i18n="preset_custom"></option>
+                <optgroup data-i18n-label="grp_desktop">
+                  <option value="1366x768">1366 &times; 768</option>
+                  <option value="1440x900">1440 &times; 900</option>
+                  <option value="1536x864">1536 &times; 864</option>
+                  <option value="1600x900">1600 &times; 900</option>
+                  <option value="1920x1080">1920 &times; 1080 (FHD)</option>
+                  <option value="1920x1200">1920 &times; 1200</option>
+                  <option value="2560x1080">2560 &times; 1080</option>
+                  <option value="2560x1440">2560 &times; 1440 (QHD)</option>
+                  <option value="3440x1440">3440 &times; 1440</option>
+                  <option value="3840x2160">3840 &times; 2160 (4K)</option>
+                </optgroup>
+                <optgroup data-i18n-label="grp_laptop">
+                  <option value="1470x956">1470 &times; 956 (MacBook Pro 14)</option>
+                  <option value="1512x982">1512 &times; 982 (MacBook Pro 14)</option>
+                  <option value="1728x1117">1728 &times; 1117 (MacBook Pro 16)</option>
+                </optgroup>
+                <optgroup data-i18n-label="grp_phone">
+                  <option value="360x800">360 &times; 800</option>
+                  <option value="375x812">375 &times; 812</option>
+                  <option value="390x844">390 &times; 844</option>
+                  <option value="393x852">393 &times; 852</option>
+                  <option value="412x915">412 &times; 915 (Pixel 7)</option>
+                  <option value="414x896">414 &times; 896</option>
+                  <option value="430x932">430 &times; 932</option>
+                </optgroup>
+              </select>
+            </label>
+            <div class="grid3">
+              <label class="field"><span data-i18n="width"></span><input type="number" min="1" data-key="screen.width" data-type="number"></label>
+              <label class="field"><span data-i18n="height"></span><input type="number" min="1" data-key="screen.height" data-type="number"></label>
+              <label class="field"><span data-i18n="color_depth"></span><input type="number" min="1" data-key="screen.colorDepth" data-type="number"></label>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-feature="hardware">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="hardware_title" data-key="hardware.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="hardware_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="hardware_hint"></p>
+            <div class="grid3">
+              <label class="field"><span data-i18n="cores"></span><input type="number" min="1" max="128" list="cores-list" data-key="hardware.cores" data-type="number"></label>
+              <label class="field"><span data-i18n="memory"></span><input type="number" min="0.25" max="64" step="0.25" list="memory-list" data-key="hardware.memory" data-type="number"></label>
+              <label class="field"><span data-i18n="touch"></span><input type="number" min="0" max="20" list="touch-list" data-key="hardware.touch" data-type="number"></label>
+            </div>
+            <datalist id="cores-list"><option value="2"><option value="4"><option value="6"><option value="8"><option value="10"><option value="12"><option value="14"><option value="16"><option value="20"><option value="24"><option value="32"></datalist>
+            <datalist id="memory-list"><option value="0.5"><option value="1"><option value="2"><option value="4"><option value="8"><option value="16"><option value="32"></datalist>
+            <datalist id="touch-list"><option value="0"><option value="1"><option value="5"><option value="10"></datalist>
+          </div>
+        </section>
+
+        <section class="card wide" data-feature="fonts">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="fonts_title" data-key="fonts.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="fonts_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="fonts_hint"></p>
+            <div class="row">
+              <button class="btn" type="button" data-fonts="win">Windows</button>
+              <button class="btn" type="button" data-fonts="mac">macOS</button>
+              <button class="btn" type="button" data-fonts="linux">Linux</button>
+              <button class="btn" type="button" data-fonts="android">Android</button>
+              <button class="btn" type="button" data-fonts="none" data-i18n="fonts_none"></button>
+            </div>
+            <div class="tabs" id="font-tabs" role="tablist"></div>
+            <input type="text" id="font-search" autocomplete="off" spellcheck="false" data-i18n-ph="font_search_ph">
+            <div class="font-meta">
+              <small id="font-count"></small>
+              <span class="font-meta-actions">
+                <button class="link" type="button" id="btn-font-select" data-i18n="font_select_shown"></button>
+                <button class="link" type="button" id="btn-font-clear" data-i18n="font_clear_shown"></button>
+              </span>
+            </div>
+            <div class="font-list" id="font-list"></div>
+          </div>
+        </section>
+
+      </div>
+    </section>
+
+    <section class="settings-page" id="region" aria-labelledby="region-title" hidden>
+      <header class="page-heading"><h2 id="region-title" tabindex="-1" data-i18n="nav_region"></h2><p data-i18n="region_desc"></p></header>
+      <div class="settings-grid">
+        <section class="card" data-feature="language">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="language_title" data-key="language.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="language_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="language_hint"></p>
+            <label class="field">
+              <span data-i18n="language_quick"></span>
+              <select id="lang-quick">
+                <option value="" data-i18n="custom"></option>
+                <option value="en-US, en">English (US)</option>
+                <option value="en-GB, en">English (UK)</option>
+                <option value="zh-CN, zh">简体中文</option>
+                <option value="zh-TW, zh">繁體中文</option>
+                <option value="ja-JP, ja">日本語</option>
+                <option value="ko-KR, ko">한국어</option>
+                <option value="de-DE, de">Deutsch</option>
+                <option value="fr-FR, fr">Français</option>
+                <option value="es-ES, es">Español</option>
+                <option value="pt-BR, pt">Português (BR)</option>
+                <option value="ru-RU, ru">Русский</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="language_list"></span>
+              <input type="text" data-key="language.languages" data-type="list" placeholder="en-US, en" spellcheck="false">
+            </label>
+          </div>
+        </section>
+
+        <section class="card" data-feature="timezone">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="timezone_title" data-key="timezone.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="timezone_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="timezone_hint"></p>
+            <div class="field">
+              <span data-i18n="timezone_value"></span>
+              <div class="combo" id="tz-combo">
+                <input type="text" id="tz-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="tz-list" autocomplete="off" spellcheck="false" data-i18n-ph="tz_placeholder">
+                <button type="button" class="combo-toggle" id="tz-toggle" tabindex="-1" data-i18n-title="tz_toggle">&#9662;</button>
+                <div class="combo-list" id="tz-list" role="listbox" hidden></div>
+              </div>
+            </div>
+            <p class="error" id="tz-error" hidden data-i18n="timezone_invalid"></p>
+          </div>
+        </section>
+
+        <section class="card wide" aria-labelledby="location-title">
+          <header><h2 id="location-title" data-i18n="location_title"></h2></header>
+          <form id="location-form" class="body always" novalidate>
+            <p class="hint" data-i18n="location_hint"></p>
+            <label class="check"><input type="checkbox" name="enabled"><span data-i18n="location_enable"></span></label>
+            <label class="field">
+              <span data-i18n="location_city"></span>
+              <select id="location-city">
+                <option value="" data-i18n="custom"></option>
+                <option value="34.0522,-118.2437" data-i18n="location_los_angeles"></option>
+                <option value="40.7128,-74.006" data-i18n="location_new_york"></option>
+                <option value="51.5072,-0.1276" data-i18n="location_london"></option>
+                <option value="1.3521,103.8198" data-i18n="location_singapore"></option>
+                <option value="31.2304,121.4737" data-i18n="location_shanghai"></option>
+                <option value="35.6762,139.6503" data-i18n="location_tokyo"></option>
+              </select>
+            </label>
+            <div id="location-map" class="location-map">
+              <div class="row map-modes" role="group" data-i18n-aria="location_map_mode">
+                <button type="button" class="btn" data-map-mode="offline" aria-pressed="true" data-i18n="location_map_offline"></button>
+                <button type="button" class="btn" data-map-mode="online" aria-pressed="false" aria-describedby="location-map-privacy" data-i18n="location_map_online"></button>
+              </div>
+              <p class="hint map-privacy" id="location-map-privacy">
+                <span data-i18n="location_map_privacy"></span>
+                <a href="https://openfreemap.org/privacy/" target="_blank" rel="noreferrer" data-i18n="location_map_privacy_link"></a>
+              </p>
+              <div class="location-map-frame">
+                <div class="location-map-layer" data-map-offline>
+                  <canvas tabindex="0" data-i18n-aria="location_map_title" aria-describedby="location-map-help"></canvas>
+                  <span class="location-map-crosshair" aria-hidden="true">+</span>
+                  <div class="location-map-controls">
+                    <button type="button" class="btn" data-map-zoom="in" data-i18n-aria="location_map_zoom_in" data-i18n-title="location_map_zoom_in">+</button>
+                    <button type="button" class="btn" data-map-zoom="out" data-i18n-aria="location_map_zoom_out" data-i18n-title="location_map_zoom_out">−</button>
+                    <button type="button" class="btn" data-map-reset data-i18n-aria="location_map_reset" data-i18n-title="location_map_reset">↺</button>
+                  </div>
+                  <a class="location-map-credit" href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a>
+                </div>
+                <div class="location-map-layer" data-map-online hidden>
+                  <div class="location-map-surface"></div>
+                  <span class="location-map-crosshair" aria-hidden="true">+</span>
+                  <div class="location-map-controls">
+                    <button type="button" class="btn" data-map-zoom="in" data-i18n-aria="location_map_zoom_in" data-i18n-title="location_map_zoom_in">+</button>
+                    <button type="button" class="btn" data-map-zoom="out" data-i18n-aria="location_map_zoom_out" data-i18n-title="location_map_zoom_out">−</button>
+                    <button type="button" class="btn" data-map-reset data-i18n-aria="location_map_reset" data-i18n-title="location_map_reset">↺</button>
+                  </div>
+                  <div class="location-map-credit">
+                    <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMap</a>
+                    · © <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a>
+                    · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>
+                  </div>
+                </div>
+              </div>
+              <div role="status">
+                <p class="hint" data-map-loading data-i18n="location_map_loading" hidden></p>
+                <p class="warn" data-map-fallback data-i18n="location_map_fallback" hidden></p>
+              </div>
+              <p class="hint" id="location-map-help" data-i18n="location_map_help"></p>
+              <p class="error location-map-error" role="alert" data-i18n="location_map_error" hidden></p>
+            </div>
+            <div class="grid3">
+              <label class="field"><span data-i18n="location_latitude"></span><input type="number" name="latitude" min="-90" max="90" step="any" inputmode="decimal"></label>
+              <label class="field"><span data-i18n="location_longitude"></span><input type="number" name="longitude" min="-180" max="180" step="any" inputmode="decimal"></label>
+              <label class="field"><span data-i18n="location_accuracy"></span><input type="number" name="accuracy" min="1" step="any" inputmode="decimal"></label>
+            </div>
+            <p class="error" id="location-error" role="alert" data-i18n="location_invalid" hidden></p>
+            <div class="row">
+              <button class="btn primary" type="submit" data-i18n="location_save"></button>
+              <small id="location-state" role="status"></small>
+            </div>
+          </form>
+        </section>
+
+      </div>
+    </section>
+
+    <section class="settings-page" id="privacy" aria-labelledby="privacy-title" hidden>
+      <header class="page-heading"><h2 id="privacy-title" tabindex="-1" data-i18n="nav_privacy"></h2><p data-i18n="privacy_desc"></p></header>
+      <div class="settings-grid">
+        <section class="card wide" id="noise-settings">
+          <header>
+            <h2 data-i18n="noise_title"></h2>
+          </header>
+          <div class="body always">
+            <p class="hint" data-i18n="noise_hint"></p>
+            <label class="check">
+              <input type="checkbox" data-key="perSiteSeed">
+              <span>
+                <strong data-i18n="per_site_seed"></strong>
+                <small data-i18n="per_site_seed_hint"></small>
+              </span>
+            </label>
+            <div class="row">
+              <label class="field grow"><span data-i18n="seed"></span><input type="number" data-key="seed" data-type="number"></label>
+              <button class="btn" type="button" id="btn-seed" data-i18n="randomize"></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-feature="workers">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="workers_title" data-key="workers.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="workers_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="workers_hint"></p>
+          </div>
+        </section>
+
+        <section class="card" data-feature="canvas">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="canvas_title" data-key="canvas.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="canvas_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="canvas_hint"></p>
+          </div>
+        </section>
+
+        <section class="card" data-feature="audio">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="audio_title" data-key="audio.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="audio_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="audio_hint"></p>
+          </div>
+        </section>
+
+        <section class="card" data-feature="speech">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="speech_title" data-key="speech.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="speech_title"></h2>
+          </header>
+          <div class="body">
+            <p class="hint" data-i18n="speech_hint"></p>
+            <label class="field">
+              <span data-i18n="speech_mode"></span>
+              <select data-key="speech.mode">
+                <option value="filter" data-i18n="speech_mode_filter"></option>
+                <option value="fake" data-i18n="speech_mode_fake"></option>
+                <option value="hide" data-i18n="speech_mode_hide"></option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="card wide" data-feature="webrtc">
+          <header>
+            <label class="switch"><input type="checkbox" role="switch" data-i18n-aria="webrtc_title" data-key="webrtc.enabled"><span class="slider"></span></label>
+            <h2 data-i18n="webrtc_title"></h2>
+          </header>
+          <div class="body always">
+            <p class="hint" data-i18n="webrtc_hint"></p>
+            <p class="hint" id="webrtc-status" role="status"></p>
+          </div>
+        </section>
+
+      </div>
+    </section>
+
+    <section class="settings-page" id="appearance" aria-labelledby="appearance-title" hidden>
+      <header class="page-heading"><h2 id="appearance-title" tabindex="-1" data-i18n="nav_appearance"></h2><p data-i18n="appearance_desc"></p></header>
+      <section class="card" aria-labelledby="theme-title">
+        <header><h3 id="theme-title" data-i18n="theme_title"></h3></header>
+        <div class="body always">
+          <div class="theme-grid" role="radiogroup" aria-labelledby="theme-title">
+            <label class="theme-option"><input type="radio" name="theme" value="system"><span class="theme-preview" data-preview="system" aria-hidden="true"></span><strong data-i18n="theme_system"></strong></label>
+            <label class="theme-option"><input type="radio" name="theme" value="light"><span class="theme-preview" data-preview="light" aria-hidden="true"></span><strong data-i18n="theme_light"></strong></label>
+            <label class="theme-option"><input type="radio" name="theme" value="dark"><span class="theme-preview" data-preview="dark" aria-hidden="true"></span><strong data-i18n="theme_dark"></strong></label>
+            <label class="theme-option"><input type="radio" name="theme" value="ocean"><span class="theme-preview" data-preview="ocean" aria-hidden="true"></span><strong data-i18n="theme_ocean"></strong></label>
+          </div>
+          <p id="theme-status" class="error" role="alert" hidden></p>
+        </div>
+      </section>
+      <div class="settings-grid appearance-settings">
+        <section class="card" aria-labelledby="display-language-title">
+          <header><h3 id="display-language-title" data-i18n="interface_language"></h3></header>
+          <div class="body always">
+            <select id="ui-language" data-key="uiLang" aria-labelledby="display-language-title">
+              <option value="auto" data-i18n="theme_system"></option><option value="zh">简体中文</option><option value="en">English</option>
+            </select>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="reset-title">
+          <header><h3 id="reset-title" data-i18n="restore_defaults"></h3></header>
+          <div class="body always">
+            <p class="hint" data-i18n="reset_desc"></p>
+            <button id="btn-reset" class="btn danger" type="button" data-i18n="reset"></button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bottom">
+    <span id="status" class="status" role="status"></span>
+    <span class="reload-note" data-i18n="note_reload"></span>
+  </footer>
+
+  <script src="../src/defaults.js"></script>
+  <script src="combo.js"></script>
+  <script src="location-map.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

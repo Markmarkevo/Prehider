@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Prehider - Fingerprint Hider & Customizer"
+  },
+  "extDescription": {
+    "message": "Hide or customize your browser fingerprint: language, time zone, installed fonts, screen, hardware, canvas, audio, WebGL and more."
+  }
+}

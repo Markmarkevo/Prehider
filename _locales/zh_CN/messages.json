@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Prehider - 浏览器指纹隐藏与自定义"
+  },
+  "extDescription": {
+    "message": "隐藏或自定义浏览器指纹：语言、时区、已安装字体、屏幕、硬件、Canvas、音频、WebGL 等。"
+  }
+}
